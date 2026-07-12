@@ -16,11 +16,21 @@ export class OfflineSyncService {
   private static autobase: AutobaseManager | null = null;
   private static p2pClient: P2PClient | null = null;
   private static offlineQueue: Transaction[] = [];
+  private static pendingCallbacks: ((data: KickPaySyncPayload) => void)[] = [];
 
   static initialize(did: string, topic: string, onSync?: SyncCallback): void {
     this.core = new HypercoreManager(did);
     this.autobase = new AutobaseManager();
     this.autobase.registerCore(this.core);
+
+    // Process any queued callbacks registered before initialization completed
+    this.pendingCallbacks.forEach(callback => {
+      this.autobase!.subscribeUnified((log: any[]) => {
+        const latest = log[log.length - 1];
+        if (latest && latest.payload) callback(latest.payload);
+      });
+    });
+    this.pendingCallbacks = [];
     
     if (onSync) {
       this.autobase.subscribeUnified((log: any[]) => {
@@ -206,6 +216,8 @@ export class OfflineSyncService {
       this.core.subscribe((entry) => {
         if (entry && entry.payload) callback(entry.payload);
       });
+    } else {
+      this.pendingCallbacks.push(callback);
     }
   }
 }
