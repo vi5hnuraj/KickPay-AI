@@ -184,7 +184,10 @@ export class P2PClient {
   }
 
   private broadcastAppend(entry: any) {
-    if (!this.isConnected) return;
+    if (!this.isConnected) {
+      console.log('[P2PClient] broadcastAppend ignored: not connected to WebSocket relay');
+      return;
+    }
 
     if (this.swarm) {
       // Hyperswarm broadcasts automatically through core log replication events
@@ -204,9 +207,21 @@ export class P2PClient {
   }
 
   private async applySyncEntry(entry: any) {
-    const existing = await this.core.get(entry.seq);
-    if (!existing) {
+    console.log('[P2PClient] applySyncEntry received entry:', entry);
+    const len = await this.core.length();
+    let exists = false;
+    for (let i = 0; i < len; i++) {
+      const e = await this.core.get(i);
+      if (e && (e.signature === entry.signature && e.timestamp === entry.timestamp && e.author === entry.author)) {
+        exists = true;
+        break;
+      }
+    }
+    if (!exists) {
+      console.log('[P2PClient] Appending new remote entry to local core:', entry.payload);
       await this.core.append(entry.author, entry.payload, entry.signature);
+    } else {
+      console.log('[P2PClient] Remote entry already exists in local core, ignoring');
     }
   }
 
