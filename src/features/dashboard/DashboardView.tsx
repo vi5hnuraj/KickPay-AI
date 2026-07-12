@@ -173,79 +173,79 @@ export default function DashboardView() {
     <div className="space-y-6 font-sans pb-10 max-w-7xl mx-auto px-4 relative">
       
       {isScanning && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/40 backdrop-blur-sm p-4">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/80 backdrop-blur-sm p-4">
           <motion.div 
             initial={{ opacity: 0, scale: 0.95 }}
             animate={{ opacity: 1, scale: 1 }}
-            className="bg-white rounded-2xl shadow-xl border border-slate-200 max-w-sm w-full p-6"
+            className="bg-[#111827] rounded-2xl shadow-xl border border-slate-800 max-w-sm w-full p-6 text-white"
           >
-            <h3 className="text-xl font-heading font-bold text-slate-900 text-center mb-4">Scan Payment QR</h3>
-            <p className="text-sm text-slate-500 text-center mb-4">Paste the kickpay:// URI to simulate scanning a QR code.</p>
+            <h3 className="text-xl font-heading font-bold text-white text-center mb-4">Scan Payment QR</h3>
+            <p className="text-sm text-slate-400 text-center mb-4">Paste the kickpay:// URI to simulate scanning a QR code.</p>
             <input 
               type="text" 
               value={scanUri} 
               onChange={e => setScanUri(e.target.value)}
               placeholder="kickpay://pay?merchant=..." 
-              className="w-full border border-slate-300 rounded-lg p-3 mb-6 font-mono text-xs"
+              className="w-full bg-slate-900 border border-slate-800 text-white rounded-lg p-3 mb-6 font-mono text-xs focus:border-primary-green outline-none"
             />
             <div className="flex justify-end gap-3">
-              <button onClick={() => setIsScanning(false)} className="px-4 py-2 rounded-lg text-slate-600 font-medium">Cancel</button>
-              <button onClick={handleSimulateScan} disabled={!scanUri} className="px-4 py-2 bg-blue-600 hover:bg-blue-700 disabled:opacity-50 text-white rounded-lg font-bold">Connect</button>
+              <button onClick={() => setIsScanning(false)} className="px-4 py-2 rounded-lg text-slate-400 hover:text-white font-medium transition-colors">Cancel</button>
+              <button onClick={handleSimulateScan} disabled={!scanUri} className="px-4 py-2 bg-blue-600 hover:bg-blue-700 disabled:opacity-50 text-white rounded-lg font-bold transition-colors">Connect</button>
             </div>
           </motion.div>
         </div>
       )}
 
       {handshakeStatus === 'waiting' && !incomingPaymentRequest && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/40 backdrop-blur-sm p-4">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/80 backdrop-blur-sm p-4">
           <motion.div 
             initial={{ opacity: 0, scale: 0.95 }}
             animate={{ opacity: 1, scale: 1 }}
-            className="bg-white rounded-2xl shadow-xl border border-slate-200 max-w-sm w-full p-8 text-center flex flex-col items-center"
+            className="bg-[#111827] rounded-2xl shadow-xl border border-slate-800 max-w-sm w-full p-8 text-center flex flex-col items-center text-white"
           >
-            <RefreshCw size={32} className="animate-spin text-blue-600 mb-4" />
-            <h3 className="text-xl font-heading font-bold text-slate-900 mb-2">Connecting to Merchant</h3>
-            <p className="text-sm text-slate-500">Waiting for secure payment session...</p>
+            <RefreshCw size={32} className="animate-spin text-blue-500 mb-4" />
+            <h3 className="text-xl font-heading font-bold text-white mb-2">Connecting to Merchant</h3>
+            <p className="text-sm text-slate-400">Waiting for secure payment session...</p>
           </motion.div>
         </div>
       )}
 
       {incomingPaymentRequest && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/40 backdrop-blur-sm p-4">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/80 backdrop-blur-sm p-4">
           <motion.div 
             initial={{ opacity: 0, scale: 0.95, y: 10 }}
             animate={{ opacity: 1, scale: 1, y: 0 }}
-            className="bg-white rounded-2xl shadow-xl border border-slate-200 max-w-sm w-full p-6"
+            className="bg-[#111827] rounded-2xl shadow-xl border border-slate-800 max-w-sm w-full p-6 text-white"
           >
             {paymentStatus === 'idle' && (
               <>
-                <div className="w-12 h-12 bg-blue-100 text-blue-600 rounded-full flex items-center justify-center mx-auto mb-4">
+                <div className="w-12 h-12 bg-blue-500/10 text-blue-400 rounded-full flex items-center justify-center mx-auto mb-4 border border-blue-500/20">
                   <Activity size={24} />
                 </div>
-                <h3 className="text-xl font-heading font-bold text-slate-900 text-center mb-2">Payment Request</h3>
-                <p className="text-slate-500 text-sm text-center mb-6">A merchant is requesting payment.</p>
+                <h3 className="text-xl font-heading font-bold text-white text-center mb-2">Payment Request</h3>
+                <p className="text-slate-400 text-sm text-center mb-6">A merchant is requesting payment.</p>
                 
-                <div className="bg-slate-50 rounded-xl p-4 space-y-3 mb-6">
-                  <div className="flex justify-between items-center pb-3 border-b border-slate-200">
-                    <span className="text-xs text-slate-500">Amount</span>
-                    <span className="text-2xl font-mono font-bold text-slate-900">{incomingPaymentRequest.amount} <span className="text-sm text-slate-400">{incomingPaymentRequest.currency}</span></span>
+                <div className="bg-slate-900/60 border border-slate-800 rounded-xl p-4 space-y-3 mb-6">
+                  <div className="flex justify-between items-center pb-3 border-b border-slate-800">
+                    <span className="text-xs text-slate-400">Amount</span>
+                    <span className="text-2xl font-mono font-bold text-white">{incomingPaymentRequest.amount} <span className="text-sm text-slate-400">{incomingPaymentRequest.currency}</span></span>
                   </div>
                   <div className="flex justify-between">
-                    <span className="text-xs text-slate-500">Merchant DID</span>
-                    <span className="text-xs font-mono text-slate-900 truncate max-w-[140px]">{incomingPaymentRequest.merchantDid}</span>
+                    <span className="text-xs text-slate-400">Merchant DID</span>
+                    <span className="text-xs font-mono text-white truncate max-w-[140px]">{incomingPaymentRequest.merchantDid}</span>
                   </div>
                   <div className="flex justify-between">
-                    <span className="text-xs text-slate-500">Expires</span>
-                    <span className="text-xs text-slate-900">{new Date(incomingPaymentRequest.expiresAt).toLocaleTimeString()}</span>
+                    <span className="text-xs text-slate-400">Expires</span>
+                    <span className="text-xs text-white">{new Date(incomingPaymentRequest.expiresAt).toLocaleTimeString()}</span>
                   </div>
                 </div>
                 
                 <div className="flex gap-3">
-                  <button onClick={handleRejectRequest} className="flex-1 py-3 px-4 rounded-xl text-slate-700 bg-slate-100 hover:bg-slate-200 font-medium transition-colors">
+                  <button onClick={handleRejectRequest} className="flex-1 py-3 px-4 rounded-xl text-slate-300 bg-slate-800 hover:bg-slate-700 font-medium transition-colors">
                     Reject
                   </button>
                   {wallet && wallet.usdt !== undefined && wallet.usdt < incomingPaymentRequest.amount ? (
-                    <button disabled className="flex-1 py-3 px-4 rounded-xl text-white bg-slate-400 font-bold cursor-not-allowed">
+                    <button disabled className="flex-1 py-3 px-4 rounded-xl text-white/50 bg-slate-800 font-bold cursor-not-allowed border border-slate-700">
                       Insufficient Balance
                     </button>
                   ) : (
@@ -259,24 +259,24 @@ export default function DashboardView() {
             {paymentStatus === 'signing' && (
               <div className="py-8 flex flex-col items-center justify-center text-center">
                 <RefreshCw size={32} className="text-blue-500 animate-spin mb-4" />
-                <h3 className="text-lg font-bold text-slate-900 mb-1">Signing Transaction</h3>
-                <p className="text-sm text-slate-500">Securing payment with your private key...</p>
+                <h3 className="text-lg font-bold text-white mb-1">Signing Transaction</h3>
+                <p className="text-sm text-slate-400">Securing payment with your private key...</p>
               </div>
             )}
             {paymentStatus === 'success' && (
               <div className="py-8 flex flex-col items-center justify-center text-center">
-                <div className="w-16 h-16 bg-emerald-100 text-emerald-600 rounded-full flex items-center justify-center mb-4">
+                <div className="w-16 h-16 bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 rounded-full flex items-center justify-center mb-4">
                   <CheckCircle2 size={32} />
                 </div>
-                <h3 className="text-xl font-bold text-slate-900 mb-2">Payment Sent</h3>
-                <p className="text-sm text-slate-500">Transaction broadcasted to local mesh.</p>
+                <h3 className="text-xl font-bold text-white mb-2">Payment Sent</h3>
+                <p className="text-sm text-slate-400">Transaction broadcasted to local mesh.</p>
               </div>
             )}
             {paymentStatus === 'error' && (
               <div className="py-8 flex flex-col items-center justify-center text-center">
-                <h3 className="text-lg font-bold text-red-600 mb-1">Payment Failed</h3>
-                <p className="text-sm text-slate-500">{statusMsg}</p>
-                <button onClick={handleRejectRequest} className="mt-4 px-4 py-2 bg-slate-100 rounded-lg">Close</button>
+                <h3 className="text-lg font-bold text-red-500 mb-1">Payment Failed</h3>
+                <p className="text-sm text-slate-400">{statusMsg}</p>
+                <button onClick={handleRejectRequest} className="mt-4 px-4 py-2 bg-slate-800 hover:bg-slate-750 text-slate-200 rounded-lg transition-colors">Close</button>
               </div>
             )}
           </motion.div>
