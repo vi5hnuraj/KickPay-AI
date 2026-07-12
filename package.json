@@ -2,7 +2,7 @@
   "name": "kickpay-ai",
   "version": "1.0.0",
   "scripts": {
-    "dev": "next dev --webpack -p 3000",
+    "dev": "PORT=3002 bun --cwd server src/index.ts & next dev --webpack -p 3000",
     "build": "next build --webpack",
     "start": "next start",
     "lint": "eslint",

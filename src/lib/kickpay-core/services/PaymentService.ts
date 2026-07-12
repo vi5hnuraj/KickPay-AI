@@ -1,4 +1,4 @@
-import { Transaction, TransactionCategory, TransactionStatus, PaymentRequest } from '@/lib/shared-types';
+import { Transaction, TransactionCategory, TransactionStatus, PaymentRequest, AIInsight } from '@/lib/shared-types';
 import { WalletService } from './WalletService';
 import { OfflineSyncService } from './OfflineSyncService';
 import { FraudDetectionService } from './FraudDetectionService';
@@ -134,7 +134,7 @@ export class PaymentService {
     return true;
   }
 
-  static async submitTransaction(tx: Transaction): Promise<{ insight: unknown | null }> {
+  static async submitTransaction(tx: Transaction): Promise<{ insight: AIInsight | null }> {
     await this.validateTransaction(tx);
     await OfflineSyncService.broadcastTransaction(tx);
     
