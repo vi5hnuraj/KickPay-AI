@@ -265,7 +265,7 @@ export class AutobaseManager {
     if (this.realAutobase) {
       await this.realAutobase.append(entry);
     } else {
-      const core = this.cores.get(author);
+      const core = this.cores.get(author) || this.cores.values().next().value;
       if (core) {
         await core.append(author, payload, signature);
       } else {

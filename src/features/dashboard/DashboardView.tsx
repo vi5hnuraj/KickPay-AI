@@ -142,19 +142,32 @@ export default function DashboardView() {
 
     OfflineSyncService.receiveReplicatedTransactions((data: any) => {
       const dataWalletDid = localStorage.getItem('kickpay_fan_wallet') ? JSON.parse(localStorage.getItem('kickpay_fan_wallet')!).did : null;
+      console.log('[Customer] Listener received data.type:', data.type, 'payload:', data);
+
       if (data.type === 'payment_request') {
         const pr = data.data;
         console.log('[Customer] PaymentRequest received', pr);
-        if (
-          pr.targetDid === dataWalletDid && 
-          pr.sessionId === activeSessionIdRef.current &&
-          pr.expiresAt > Date.now()
-        ) {
-          console.log('[Customer] Approval dialog opened', pr);
-          // It's targeted specifically at us!
-          setIncomingPaymentRequest(pr);
-          setPaymentStatus('idle');
-          setHandshakeStatus('idle'); // Clear handshake status
+        console.log('[Customer] Checking targets: pr.targetDid:', pr.targetDid, 'against customerWalletDid:', dataWalletDid);
+        
+        if (pr.targetDid === dataWalletDid) {
+          console.log('[Customer] Target DID MATCHED! Checking active session. pr.sessionId:', pr.sessionId, 'against activeSessionIdRef.current:', activeSessionIdRef.current);
+          
+          if (pr.sessionId === activeSessionIdRef.current) {
+            console.log('[Customer] Session ID MATCHED! Checking expiration. pr.expiresAt:', pr.expiresAt, 'against Date.now():', Date.now());
+            
+            if (pr.expiresAt > Date.now()) {
+              console.log('[Customer] Expiration check PASSED! Opening approval dialog');
+              setIncomingPaymentRequest(pr);
+              setPaymentStatus('idle');
+              setHandshakeStatus('idle'); // Clear handshake status
+            } else {
+              console.log('[Customer] Condition FAILED: payment request expired');
+            }
+          } else {
+            console.log('[Customer] Condition FAILED: pr.sessionId does not match activeSessionIdRef.current');
+          }
+        } else {
+          console.log('[Customer] Condition FAILED: pr.targetDid does not match customerWalletDid');
         }
       } else {
         setRecentActivity(prev => [data, ...prev].slice(0, 50));

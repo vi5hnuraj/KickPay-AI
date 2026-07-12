@@ -196,14 +196,16 @@ export class OfflineSyncService {
     }
   }
 
-  static receiveReplicatedTransactions(callback: SyncCallback): void {
+  static receiveReplicatedTransactions(callback: (data: KickPaySyncPayload) => void): void {
     if (this.autobase) {
       this.autobase.subscribeUnified((log: any[]) => {
         const latest = log[log.length - 1];
-        if (latest) callback(latest);
+        if (latest && latest.payload) callback(latest.payload);
       });
     } else if (this.core) {
-      this.core.subscribe(callback);
+      this.core.subscribe((entry) => {
+        if (entry && entry.payload) callback(entry.payload);
+      });
     }
   }
 }
