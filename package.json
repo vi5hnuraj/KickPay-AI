@@ -2,7 +2,9 @@
   "name": "kickpay-ai",
   "version": "1.0.0",
   "scripts": {
-    "dev": "PORT=3002 bun --cwd server src/index.ts & next dev --webpack -p 3000",
+    "dev:web": "next dev --webpack -p 3000",
+    "dev:relay": "PORT=3002 bun --cwd server src/index.ts",
+    "dev": "concurrently \"bun run dev:web\" \"bun run dev:relay\"",
     "build": "next build --webpack",
     "start": "next start",
     "lint": "eslint",
@@ -35,10 +37,11 @@
     "hyperswarm": "^4.17.0"
   },
   "devDependencies": {
-    "autoprefixer": "^10",
     "@types/node": "^20",
     "@types/react": "^19",
     "@types/react-dom": "^19",
+    "autoprefixer": "^10",
+    "concurrently": "^10.0.3",
     "eslint": "^9",
     "eslint-config-next": "16.2.10",
     "tailwindcss": "^3",
