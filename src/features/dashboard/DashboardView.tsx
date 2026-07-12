@@ -22,9 +22,39 @@ import { aiEngineUsed } from '../ai/qvac-service';
 const L_USDT_ASSET_ID = 'b612eb46313a2cd6ebabd8b7a8eed5696e29898b87a43bff41c94f51acef9d73';
 const L_BTC_ASSET_ID = '144c654344aa716d6f3abcc1ca90e5641e4e2a7f633bc09fe3baf64585819a49';
 
+async function fetchBtcPrice(): Promise<number | null> {
+  try {
+    const res = await fetch('https://api.coingecko.com/api/v3/simple/price?ids=bitcoin&vs_currencies=usd');
+    if (res.ok) {
+      const data = await res.json();
+      if (data.bitcoin && typeof data.bitcoin.usd === 'number') {
+        return data.bitcoin.usd;
+      }
+    }
+  } catch (e) {
+    console.warn('[Dashboard] CoinGecko price fetch failed, trying blockchain.info:', e);
+  }
+
+  try {
+    const res = await fetch('https://blockchain.info/ticker');
+    if (res.ok) {
+      const data = await res.json();
+      if (data.USD && typeof data.USD.last === 'number') {
+        return data.USD.last;
+      }
+    }
+  } catch (e) {
+    console.warn('[Dashboard] Backup price fetch failed:', e);
+  }
+
+  return null;
+}
+
 export default function DashboardView() {
   const [wallet, setWallet] = useState<{ usdt?: number; lbtc?: number; assets?: any[]; did: string; address?: string } | null>(null);
   const [isOfflineData, setIsOfflineData] = useState(false);
+  const [btcPrice, setBtcPrice] = useState<number | null>(null);
+  const [priceLoading, setPriceLoading] = useState(false);
   const [lastUpdated, setLastUpdated] = useState<string>('Not synchronized yet');
   const [recentActivity, setRecentActivity] = useState<any[]>([]);
   const [copiedDid, setCopiedDid] = useState(false);
@@ -39,6 +69,37 @@ export default function DashboardView() {
   const [handshakeStatus, setHandshakeStatus] = useState<'idle' | 'waiting'>('idle');
   const [statusMsg, setStatusMsg] = useState('');
 
+  const getRequestedAssetBalance = () => {
+    if (!wallet || !incomingPaymentRequest) return undefined;
+    const ticker = incomingPaymentRequest.assetTicker || (incomingPaymentRequest.currency === 'LiquidBitcoin' ? 'L-BTC' : 'L-USDT');
+    if (ticker === 'L-BTC') {
+      return wallet.lbtc;
+    }
+    if (ticker === 'L-USDT' || ticker === 'USDT') {
+      return wallet.usdt;
+    }
+    const customAsset = wallet.assets?.find(a => a.assetId === incomingPaymentRequest.assetId);
+    return customAsset ? customAsset.amount : 0;
+  };
+
+  const getPortfolioValue = () => {
+    if (!wallet) return '...';
+    if (wallet.usdt === undefined && wallet.lbtc === undefined) return '...';
+    
+    const usdtVal = wallet.usdt || 0;
+    const lbtcVal = wallet.lbtc || 0;
+    
+    if (lbtcVal > 0) {
+      if (btcPrice === null) {
+        return priceLoading ? 'Loading...' : 'Price unavailable';
+      }
+      const btcUsdVal = lbtcVal * btcPrice;
+      return `$${(usdtVal + btcUsdVal).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+    }
+    
+    return `$${usdtVal.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+  };
+
   const fetchBalance = async (did: string, address?: string, forceLive = false) => {
     try {
       if (forceLive) {
@@ -51,6 +112,12 @@ export default function DashboardView() {
       setWallet({ ...bal, did, address });
       setLastUpdated(new Date().toLocaleTimeString());
       setIsOfflineData(bal.isCached === true);
+      
+      // Fetch live BTC price asynchronously
+      setPriceLoading(true);
+      const price = await fetchBtcPrice();
+      setBtcPrice(price);
+      setPriceLoading(false);
     } catch {
       setIsOfflineData(true);
       if (typeof localStorage !== 'undefined') {
@@ -110,7 +177,10 @@ export default function DashboardView() {
         incomingPaymentRequest.amount,
         'merchandise',
         privateKeyHex,
-        incomingPaymentRequest.sessionId
+        incomingPaymentRequest.sessionId,
+        incomingPaymentRequest.assetId || (incomingPaymentRequest.currency === 'LiquidBitcoin' ? L_BTC_ASSET_ID : L_USDT_ASSET_ID),
+        incomingPaymentRequest.assetTicker || (incomingPaymentRequest.currency === 'LiquidBitcoin' ? 'L-BTC' : 'L-USDT'),
+        incomingPaymentRequest.assetName || (incomingPaymentRequest.currency === 'LiquidBitcoin' ? 'Liquid Bitcoin' : 'Tether USD')
       );
       
       await OfflineSyncService.broadcastTransaction(tx);
@@ -250,10 +320,22 @@ export default function DashboardView() {
                 <h3 className="text-xl font-heading font-bold text-white text-center mb-2">Payment Request</h3>
                 <p className="text-slate-400 text-sm text-center mb-6">A merchant is requesting payment.</p>
                 
+                {/* Demo Mode Warning Banner */}
+                {(incomingPaymentRequest.assetTicker === 'L-BTC' || incomingPaymentRequest.currency === 'LiquidBitcoin') && (
+                  <div className="mb-4 bg-yellow-500/10 border border-yellow-500/20 text-yellow-500 text-xs font-semibold px-4 py-2.5 rounded-xl text-center">
+                    Demo Mode: Paying with Liquid Bitcoin (L-BTC)
+                  </div>
+                )}
+
                 <div className="bg-slate-900/60 border border-slate-800 rounded-xl p-4 space-y-3 mb-6">
                   <div className="flex justify-between items-center pb-3 border-b border-slate-800">
                     <span className="text-xs text-slate-400">Amount</span>
-                    <span className="text-2xl font-mono font-bold text-white">{incomingPaymentRequest.amount} <span className="text-sm text-slate-400">{incomingPaymentRequest.currency}</span></span>
+                    <span className="text-2xl font-mono font-bold text-white">
+                      {incomingPaymentRequest.amount}{' '}
+                      <span className="text-sm text-slate-400">
+                        {incomingPaymentRequest.assetTicker || (incomingPaymentRequest.currency === 'LiquidBitcoin' ? 'L-BTC' : 'L-USDT')}
+                      </span>
+                    </span>
                   </div>
                   <div className="flex justify-between">
                     <span className="text-xs text-slate-400">Merchant DID</span>
@@ -269,7 +351,7 @@ export default function DashboardView() {
                   <button onClick={handleRejectRequest} className="flex-1 py-3 px-4 rounded-xl text-slate-300 bg-slate-800 hover:bg-slate-700 font-medium transition-colors">
                     Reject
                   </button>
-                  {wallet && wallet.usdt !== undefined && wallet.usdt < incomingPaymentRequest.amount ? (
+                  {wallet && getRequestedAssetBalance() !== undefined && getRequestedAssetBalance()! < incomingPaymentRequest.amount ? (
                     <button disabled className="flex-1 py-3 px-4 rounded-xl text-white/50 bg-slate-800 font-bold cursor-not-allowed border border-slate-700">
                       Insufficient Balance
                     </button>
@@ -340,32 +422,41 @@ export default function DashboardView() {
                 </div>
               </div>
               
-              <div className="space-y-3 min-w-[200px] mt-2">
+              <div className="space-y-4 min-w-[220px] mt-2">
                 <div>
-                  <p className="text-[11px] font-semibold text-slate-400 tracking-wide">L-USDT</p>
-                  <p className="text-2xl font-bold font-mono text-white">
-                    {wallet && wallet.usdt !== undefined ? (
-                      <>{wallet.usdt.toFixed(2)} <span className="text-sm text-slate-400 font-normal font-sans">USDT</span></>
-                    ) : (
-                      <span className="text-sm font-sans text-slate-500 animate-pulse">Loading...</span>
-                    )}
+                  <p className="text-[10px] font-mono text-slate-400 uppercase tracking-wider">Portfolio Value (USD)</p>
+                  <p className="text-2xl font-bold font-mono text-white mt-0.5">
+                    {getPortfolioValue()}
                   </p>
                 </div>
-                <div>
-                  <p className="text-[11px] font-semibold text-slate-400 tracking-wide">L-BTC</p>
-                  <p className="text-lg font-bold font-mono text-white">
-                    {wallet && wallet.lbtc !== undefined ? (
-                      <>{wallet.lbtc.toFixed(8)} <span className="text-xs text-slate-400 font-normal font-sans">L-BTC</span></>
-                    ) : (
-                      <span className="text-xs font-sans text-slate-500 animate-pulse">Loading...</span>
-                    )}
-                  </p>
+
+                <div className="grid grid-cols-2 gap-4 pt-2 border-t border-slate-800">
+                  <div>
+                    <p className="text-[10px] font-semibold text-slate-400">L-USDT</p>
+                    <p className="text-sm font-bold font-mono text-white mt-0.5">
+                      {wallet && wallet.usdt !== undefined ? (
+                        <>{wallet.usdt.toFixed(2)} <span className="text-[9px] text-slate-500 font-normal font-sans">USDT</span></>
+                      ) : (
+                        <span className="text-xs font-sans text-slate-500">...</span>
+                      )}
+                    </p>
+                  </div>
+                  <div>
+                    <p className="text-[10px] font-semibold text-slate-400">L-BTC</p>
+                    <p className="text-sm font-bold font-mono text-white mt-0.5">
+                      {wallet && wallet.lbtc !== undefined ? (
+                        <>{wallet.lbtc.toFixed(8)} <span className="text-[9px] text-slate-500 font-normal font-sans">BTC</span></>
+                      ) : (
+                        <span className="text-xs font-sans text-slate-500">...</span>
+                      )}
+                    </p>
+                  </div>
                 </div>
               </div>
               <p className="text-[9px] text-slate-500 mt-2">Last Sync: {lastUpdated}</p>
             </div>
             
-            <div className="hidden md:block w-px h-24 bg-slate-800"></div>
+            <div className="hidden md:block w-px h-28 bg-slate-800"></div>
 
             <div>
               <p className="text-xs font-mono text-slate-400 uppercase tracking-wider mb-1">Offline Identity (DID)</p>

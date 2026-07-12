@@ -29,6 +29,11 @@ export default function MerchantPOSView() {
   const [lastUpdated, setLastUpdated] = useState<string>('Not synchronized yet');
 
   const [amount, setAmount] = useState('');
+  const [selectedAsset, setSelectedAsset] = useState<{ id: string; ticker: string; name: string }>({
+    id: 'b612eb46313a2cd6ebabd8b7a8eed5696e29898b87a43bff41c94f51acef9d73',
+    ticker: 'L-USDT',
+    name: 'Tether USD'
+  });
   const [status, setStatus] = useState<'idle' | 'waiting' | 'handshake_received' | 'verifying' | 'receipt_generated' | 'error'>('idle');
   const [lastTx, setLastTx] = useState<Transaction | null>(null);
   const [receipt, setReceipt] = useState<Receipt | null>(null);
@@ -169,7 +174,13 @@ export default function MerchantPOSView() {
     if (!merchantWallet || !amount) return;
     
     try {
-      const { request, uri } = PaymentService.createPaymentRequest(merchantWallet.did, parseFloat(amount));
+      const { request, uri } = PaymentService.createPaymentRequest(
+        merchantWallet.did,
+        parseFloat(amount),
+        selectedAsset.id,
+        selectedAsset.ticker,
+        selectedAsset.name
+      );
       setCurrentRequest(request);
       currentRequestRef.current = request;
       setPaymentUri(uri);
@@ -392,8 +403,35 @@ export default function MerchantPOSView() {
                   className="w-full max-w-sm mx-auto flex flex-col items-center"
                 >
                   <p className="text-slate-500 font-mono text-xs uppercase tracking-widest mb-4">Charge Amount</p>
-                  <div className="text-6xl font-mono font-bold text-slate-900 tracking-tighter h-20 flex items-center justify-center mb-8">
-                    {amount || '0.00'} <span className="text-3xl text-slate-400 ml-2">USDT</span>
+                  
+                  {/* Asset Selector */}
+                  <div className="flex gap-2 mb-6 bg-slate-100 p-1 rounded-lg w-full">
+                    <button
+                      type="button"
+                      onClick={() => setSelectedAsset({
+                        id: 'b612eb46313a2cd6ebabd8b7a8eed5696e29898b87a43bff41c94f51acef9d73',
+                        ticker: 'L-USDT',
+                        name: 'Tether USD'
+                      })}
+                      className={`flex-1 py-2 text-xs font-bold rounded-md transition-all ${selectedAsset.ticker === 'L-USDT' ? 'bg-white text-slate-900 shadow-sm border border-slate-200' : 'text-slate-500 hover:text-slate-700'}`}
+                    >
+                      L-USDT
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setSelectedAsset({
+                        id: '144c654344aa716d6f3abcc1ca90e5641e4e2a7f633bc09fe3baf64585819a49',
+                        ticker: 'L-BTC',
+                        name: 'Liquid Bitcoin'
+                      })}
+                      className={`flex-1 py-2 text-xs font-bold rounded-md transition-all ${selectedAsset.ticker === 'L-BTC' ? 'bg-white text-slate-900 shadow-sm border border-slate-200' : 'text-slate-500 hover:text-slate-700'}`}
+                    >
+                      L-BTC
+                    </button>
+                  </div>
+
+                  <div className="text-5xl font-mono font-bold text-slate-900 tracking-tighter h-20 flex items-center justify-center mb-8">
+                    {amount || (selectedAsset.ticker === 'L-BTC' ? '0.00000000' : '0.00')} <span className="text-2xl text-slate-400 ml-2">{selectedAsset.ticker}</span>
                   </div>
 
                   <div className="grid grid-cols-3 gap-3 w-full mb-8">
@@ -439,7 +477,7 @@ export default function MerchantPOSView() {
                     <div className={`bg-white p-4 rounded-xl shadow-sm border border-slate-100 mb-6 transition-all ${status === 'handshake_received' ? 'opacity-50 blur-sm' : ''}`}>
                       <QRCodeSVG value={paymentUri} size={200} level="H" />
                     </div>
-                    <div className="text-4xl font-mono font-bold text-slate-900 mb-2">{amount} <span className="text-xl text-slate-400">USDT</span></div>
+                    <div className="text-4xl font-mono font-bold text-slate-900 mb-2">{amount} <span className="text-xl text-slate-400">{selectedAsset.ticker}</span></div>
                     <div className="text-xs font-mono text-slate-500 mt-2 bg-slate-200 px-3 py-1 rounded-full">{currentRequest.requestId}</div>
                   </div>
                   
@@ -499,7 +537,7 @@ export default function MerchantPOSView() {
                   <div className="w-full bg-slate-50 border border-slate-200 rounded-xl p-5 text-left space-y-3">
                     <div className="flex justify-between items-center pb-3 border-b border-slate-200">
                       <span className="text-slate-500 text-xs">Amount Paid</span>
-                      <span className="text-xl font-mono font-bold text-slate-900">{lastTx.amount} USDT</span>
+                      <span className="text-xl font-mono font-bold text-slate-900">{lastTx.amount} {lastTx.assetTicker || lastTx.currency}</span>
                     </div>
                     <div className="flex justify-between">
                       <span className="text-slate-500 text-xs">Customer DID</span>

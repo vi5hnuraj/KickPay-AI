@@ -52,7 +52,10 @@ export class ReceiptService {
       currency: tx.currency,
       timestamp: Date.now(),
       verificationStatus: 'verified' as const,
-      sessionId: tx.sessionId
+      sessionId: tx.sessionId,
+      assetId: tx.assetId,
+      assetTicker: tx.assetTicker,
+      assetName: tx.assetName
     };
 
     const merchantSignature = await WalletService.signPayload(merchantPrivateKeyHex, receiptBase);

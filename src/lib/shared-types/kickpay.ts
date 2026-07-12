@@ -27,6 +27,9 @@ export interface Transaction {
   signature: string; // Cryptographic proof from sender
   posSessionId?: string; // If processed via a Merchant POS
   sessionId?: string; // Tracks the targeted payment session lifecycle
+  assetId?: string;
+  assetTicker?: string;
+  assetName?: string;
 }
 
 export interface PaymentRequest {
@@ -38,6 +41,9 @@ export interface PaymentRequest {
   expiresAt: number;
   sessionId?: string;
   targetDid?: string; // The Customer DID this request is uniquely targeted at
+  assetId?: string;
+  assetTicker?: string;
+  assetName?: string;
 }
 
 export interface PaymentSessionHandshake {
@@ -62,6 +68,9 @@ export interface Receipt {
   txHash?: string;
   confirmedAt?: number;
   retryCount?: number;
+  assetId?: string;
+  assetTicker?: string;
+  assetName?: string;
 }
 
 export interface POSSession {
