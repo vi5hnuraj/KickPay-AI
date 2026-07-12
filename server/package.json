@@ -10,8 +10,7 @@
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
-    "ws": "^8.16.0",
-    "@kickpay/shared-types": "*"
+    "ws": "^8.16.0"
   },
   "devDependencies": {
     "@types/node": "^20.0.0",
