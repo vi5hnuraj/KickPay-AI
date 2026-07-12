@@ -185,14 +185,14 @@ export default function WalletSetup({ onWalletLoaded }: { onWalletLoaded: (w: Fa
           <ShieldCheck size={40} className="text-primary-green" />
         </div>
         <div>
-          <h2 className="text-3xl font-heading font-bold text-slate-900 mb-2">Welcome Back</h2>
-          <p className="text-slate-500 font-mono text-xs uppercase tracking-wider">Offline Identity</p>
-          <p className="text-slate-700 font-mono text-sm mb-4">
+          <h2 className="text-3xl font-heading font-bold text-text-primary mb-2">Welcome Back</h2>
+          <p className="text-text-secondary font-mono text-xs uppercase tracking-wider">Offline Identity</p>
+          <p className="text-text-primary font-mono text-sm mb-4">
             {wallet.did.slice(0, 16)}...{wallet.did.slice(-4)}
           </p>
           {wallet.address && (
             <>
-              <p className="text-slate-500 font-mono text-xs uppercase tracking-wider">Liquid Address</p>
+              <p className="text-text-secondary font-mono text-xs uppercase tracking-wider">Liquid Address</p>
               <p className="text-blue-600 font-mono text-sm bg-blue-50 py-1 px-3 rounded-full inline-block">
                 {wallet.address.slice(0, 8)}...{wallet.address.slice(-6)}
               </p>
@@ -217,9 +217,9 @@ export default function WalletSetup({ onWalletLoaded }: { onWalletLoaded: (w: Fa
           <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-primary-green to-[#0f766e] flex items-center justify-center mx-auto shadow-lg shadow-primary-green/20 text-white mb-6">
             <Key size={28} />
           </div>
-          <h1 className="text-3xl font-heading font-bold text-slate-900">KickPay AI</h1>
-          <p className="text-slate-900 font-bold text-lg">Offline Football Wallet</p>
-          <p className="text-slate-500 font-medium text-sm">Powered by WDK, Pear, and QVAC</p>
+          <h1 className="text-3xl font-heading font-bold text-text-primary">KickPay AI</h1>
+          <p className="text-text-primary font-bold text-lg">Offline Football Wallet</p>
+          <p className="text-text-secondary font-medium text-sm">Powered by WDK, Pear, and QVAC</p>
         </div>
 
         <div className="space-y-4">
@@ -254,35 +254,36 @@ export default function WalletSetup({ onWalletLoaded }: { onWalletLoaded: (w: Fa
       <div className="max-w-md mx-auto text-center space-y-6 py-20">
         <motion.div animate={{ rotate: 360 }} transition={{ repeat: Infinity, duration: 1, ease: "linear" }} className="w-12 h-12 border-4 border-slate-100 border-t-primary-green rounded-full mx-auto" />
         <div>
-          <h2 className="text-xl font-bold text-slate-900">Generating Secure Keys</h2>
-          <p className="text-slate-500 mt-2 font-mono text-sm">{creationSteps[creationStep]}</p>
+          <h2 className="text-xl font-bold text-text-primary">Generating Secure Keys</h2>
+          <p className="text-text-secondary mt-2 font-mono text-sm">{creationSteps[creationStep]}</p>
         </div>
       </div>
     );
   }
 
+
   if (step === 'backup') {
     return (
       <div className="max-w-xl mx-auto space-y-6 mt-6">
         <div className="text-center space-y-2 mb-8">
-          <h2 className="text-3xl font-heading font-bold text-slate-900">Secret Recovery Phrase</h2>
-          <p className="text-slate-600">Write down these 12 words in order. This is the <strong className="text-slate-900">ONLY</strong> way to recover your wallet if you lose access to this device.</p>
+          <h2 className="text-3xl font-heading font-bold text-text-primary">Secret Recovery Phrase</h2>
+          <p className="text-text-secondary">Write down these 12 words in order. This is the <strong className="text-text-primary">ONLY</strong> way to recover your wallet if you lose access to this device.</p>
         </div>
 
-        <div className="bg-amber-50 border border-amber-200 rounded-2xl p-4 flex items-start gap-4">
+        <div className="bg-amber-50/10 border border-amber-500/20 rounded-2xl p-4 flex items-start gap-4">
           <AlertTriangle className="text-amber-500 flex-shrink-0 mt-0.5" size={20} />
-          <div className="text-sm text-amber-900 space-y-1">
+          <div className="text-sm text-amber-200 space-y-1">
             <p className="font-bold">Never share this phrase with anyone.</p>
             <p className="opacity-90">KickPay support will never ask for it. Anyone with these words can steal your funds.</p>
           </div>
         </div>
 
-        <div className="bg-white border border-slate-200 shadow-sm rounded-3xl p-6 relative overflow-hidden group">
+        <div className="bg-[#111827] border border-slate-800 shadow-sm rounded-3xl p-6 relative overflow-hidden group">
           <div className="grid grid-cols-3 gap-x-4 gap-y-4 relative z-10">
             {seedWords.map((word, idx) => (
-              <div key={idx} className="flex items-center gap-3 bg-slate-50 border border-slate-100 p-3 rounded-xl">
-                <span className="text-slate-400 font-mono text-xs w-4">{idx + 1}.</span>
-                <span className="text-slate-900 font-bold text-sm tracking-wide">{word}</span>
+              <div key={idx} className="flex items-center gap-3 bg-slate-900/50 border border-slate-800 p-3 rounded-xl">
+                <span className="text-slate-500 font-mono text-xs w-4">{idx + 1}.</span>
+                <span className="text-white font-bold text-sm tracking-wide">{word}</span>
               </div>
             ))}
           </div>
@@ -301,7 +302,7 @@ export default function WalletSetup({ onWalletLoaded }: { onWalletLoaded: (w: Fa
         <div className="pt-4">
           <button
             onClick={() => setSavedBackup(true)}
-            className={`w-full font-bold py-4 px-6 rounded-2xl transition-all shadow-lg active:scale-[0.98] flex justify-center items-center gap-2 ${savedBackup ? 'bg-slate-900 hover:bg-slate-800 text-white shadow-slate-900/20' : 'bg-primary-green hover:bg-[#1B7559] text-white shadow-primary-green/20'}`}
+            className={`w-full font-bold py-4 px-6 rounded-2xl transition-all shadow-lg active:scale-[0.98] flex justify-center items-center gap-2 ${savedBackup ? 'bg-[#1f2937] hover:bg-slate-800 text-white shadow-slate-950/20' : 'bg-primary-green hover:bg-[#1B7559] text-white shadow-primary-green/20'}`}
           >
             {savedBackup ? (
               <span onClick={(e) => { e.stopPropagation(); setStep('verify'); }} className="flex items-center gap-2 w-full justify-center">
@@ -319,19 +320,19 @@ export default function WalletSetup({ onWalletLoaded }: { onWalletLoaded: (w: Fa
   if (step === 'verify') {
     return (
       <div className="max-w-md mx-auto mt-10 space-y-8">
-        <button onClick={() => setStep('backup')} className="text-slate-500 hover:text-slate-900 flex items-center gap-1 text-sm font-medium transition-colors">
+        <button onClick={() => setStep('backup')} className="text-text-secondary hover:text-text-primary flex items-center gap-1 text-sm font-medium transition-colors">
           <ArrowLeft size={16} /> Back
         </button>
 
         <div className="space-y-2">
-          <h2 className="text-3xl font-heading font-bold text-slate-900">Verify Phrase</h2>
-          <p className="text-slate-600">Select the correct words from your secret phrase to confirm you saved it.</p>
+          <h2 className="text-3xl font-heading font-bold text-text-primary">Verify Phrase</h2>
+          <p className="text-text-secondary">Select the correct words from your secret phrase to confirm you saved it.</p>
         </div>
 
         <form onSubmit={handleVerifySubmit} className="space-y-6">
           {verifyIndices.map((idx) => (
             <div key={idx} className="space-y-2">
-              <label className="text-sm font-bold text-slate-900 flex justify-between">
+              <label className="text-sm font-bold text-text-primary flex justify-between">
                 Word #{idx + 1}
               </label>
               <input
@@ -339,7 +340,7 @@ export default function WalletSetup({ onWalletLoaded }: { onWalletLoaded: (w: Fa
                 autoComplete="off"
                 value={verifyAnswers[idx] || ''}
                 onChange={(e) => setVerifyAnswers(prev => ({ ...prev, [idx]: e.target.value }))}
-                className="w-full bg-white border border-slate-200 rounded-xl px-4 py-4 text-sm focus:border-primary-green focus:ring-1 focus:ring-primary-green outline-none transition-all shadow-sm font-medium text-slate-900"
+                className="w-full bg-[#111827] border border-slate-800 rounded-xl px-4 py-4 text-sm focus:border-primary-green focus:ring-1 focus:ring-primary-green outline-none transition-all shadow-sm font-medium text-white"
                 placeholder="Enter word"
                 required
               />
@@ -347,7 +348,7 @@ export default function WalletSetup({ onWalletLoaded }: { onWalletLoaded: (w: Fa
           ))}
 
           {verifyError && (
-            <div className="p-4 rounded-xl bg-red-50 text-red-600 text-sm font-medium flex items-center gap-2">
+            <div className="p-4 rounded-xl bg-red-950/20 border border-red-500/20 text-red-400 text-sm font-medium flex items-center gap-2">
               <AlertTriangle size={16} />
               {verifyError}
             </div>
@@ -355,7 +356,7 @@ export default function WalletSetup({ onWalletLoaded }: { onWalletLoaded: (w: Fa
 
           <button
             type="submit"
-            className="w-full bg-slate-900 hover:bg-slate-800 text-white font-bold py-4 px-6 rounded-2xl transition-all shadow-lg shadow-slate-900/20 active:scale-95"
+            className="w-full bg-primary-green hover:bg-[#1B7559] text-white font-bold py-4 px-6 rounded-2xl transition-all shadow-lg shadow-primary-green/20 active:scale-95"
           >
             Verify & Complete
           </button>
@@ -367,13 +368,13 @@ export default function WalletSetup({ onWalletLoaded }: { onWalletLoaded: (w: Fa
   if (step === 'import') {
     return (
       <div className="max-w-md mx-auto mt-10 space-y-8">
-        <button onClick={() => setStep('landing')} className="text-slate-500 hover:text-slate-900 flex items-center gap-1 text-sm font-medium transition-colors">
+        <button onClick={() => setStep('landing')} className="text-text-secondary hover:text-text-primary flex items-center gap-1 text-sm font-medium transition-colors">
           <ArrowLeft size={16} /> Back
         </button>
 
         <div className="space-y-2">
-          <h2 className="text-3xl font-heading font-bold text-slate-900">Import Wallet</h2>
-          <p className="text-slate-600">Enter your 12-word secret recovery phrase to restore your identity.</p>
+          <h2 className="text-3xl font-heading font-bold text-text-primary">Import Wallet</h2>
+          <p className="text-text-secondary">Enter your 12-word secret recovery phrase to restore your identity.</p>
         </div>
 
         <form onSubmit={handleImportSubmit} className="space-y-6">
@@ -381,11 +382,12 @@ export default function WalletSetup({ onWalletLoaded }: { onWalletLoaded: (w: Fa
             <textarea
               value={importPhrase}
               onChange={(e) => setImportPhrase(e.target.value)}
-              className="w-full h-32 bg-white border border-slate-200 rounded-xl p-4 text-sm focus:border-[#3B82F6] focus:ring-1 focus:ring-[#3B82F6] outline-none transition-all shadow-sm font-mono text-slate-900 resize-none"
+              className="w-full h-32 bg-[#111827] border border-slate-800 rounded-xl p-4 text-sm focus:border-[#3B82F6] focus:ring-1 focus:ring-[#3B82F6] outline-none transition-all shadow-sm font-mono text-white resize-none"
               placeholder="word1 word2 word3..."
               required
             />
           </div>
+
 
           {importError && (
             <div className="p-4 rounded-xl bg-red-50 text-red-600 text-sm font-medium flex items-start gap-2">

@@ -1,5 +1,5 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" width="32" height="32">
-  <rect width="32" height="32" fill="#00FF85"/>
+  <rect width="32" height="32" rx="6" fill="#26A17B"/>
   <text
     x="50%"
     y="50%"
@@ -8,7 +8,7 @@
     font-family="Arial Black, Arial, sans-serif"
     font-weight="900"
     font-size="22"
-    fill="#000000"
+    fill="#FFFFFF"
     letter-spacing="-1"
-  >P</text>
+  >K</text>
 </svg>

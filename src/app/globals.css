@@ -3,26 +3,26 @@
 @tailwind utilities;
 
 :root {
-  /* KickPay AI Premium Fintech Palette (Strict match to user request) */
-  --background: #F7F9FC;
-  --foreground: #0F172A;
+  /* KickPay AI Premium Dark Fintech Palette */
+  --background: #090D16;
+  --foreground: #F8FAFC;
   
-  --card: #FFFFFF;
-  --card-foreground: #0F172A;
+  --card: #111827;
+  --card-foreground: #F8FAFC;
   
-  --border: #E5E7EB;
+  --border: #1F2937;
   
   --primary: #26A17B;
   --primary-foreground: #FFFFFF;
   
-  --secondary: #0F172A;
+  --secondary: #111827;
   --secondary-foreground: #FFFFFF;
   
   --accent: #FFD54F;
   --accent-foreground: #0F172A;
   
-  --muted: #F1F5F9;
-  --muted-foreground: #64748B;
+  --muted: #1F2937;
+  --muted-foreground: #94A3B8;
   
   --destructive: #EF4444;
   --destructive-foreground: #FFFFFF;
@@ -30,10 +30,10 @@
   --success: #22C55E;
   --success-foreground: #FFFFFF;
 
-  --popover: #FFFFFF;
-  --popover-foreground: #0F172A;
+  --popover: #111827;
+  --popover-foreground: #F8FAFC;
   
-  --input: #E5E7EB;
+  --input: #1F2937;
   --ring: #26A17B;
 
   --radius: 24px;
