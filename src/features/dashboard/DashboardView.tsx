@@ -19,8 +19,12 @@ import {
 } from 'lucide-react';
 import { aiEngineUsed } from '../ai/qvac-service';
 
+const L_USDT_ASSET_ID = 'b612eb46313a2cd6ebabd8b7a8eed5696e29898b87a43bff41c94f51acef9d73';
+const L_BTC_ASSET_ID = '144c654307df7506185572a1796d80d7c9c3d4d71415aba7b8098b64e54fe207';
+
 export default function DashboardView() {
-  const [wallet, setWallet] = useState<{ usdt?: number, points?: number, did: string, address?: string } | null>(null);
+  const [wallet, setWallet] = useState<{ usdt?: number; lbtc?: number; assets?: any[]; did: string; address?: string } | null>(null);
+  const [isOfflineData, setIsOfflineData] = useState(false);
   const [lastUpdated, setLastUpdated] = useState<string>('Not synchronized yet');
   const [recentActivity, setRecentActivity] = useState<any[]>([]);
   const [copiedDid, setCopiedDid] = useState(false);
@@ -35,13 +39,28 @@ export default function DashboardView() {
   const [handshakeStatus, setHandshakeStatus] = useState<'idle' | 'waiting'>('idle');
   const [statusMsg, setStatusMsg] = useState('');
 
-  const fetchBalance = async (did: string, address?: string) => {
+  const fetchBalance = async (did: string, address?: string, forceLive = false) => {
     try {
+      if (forceLive) {
+        if (typeof navigator !== 'undefined' && !navigator.onLine) {
+          throw new Error('Offline');
+        }
+      }
+      
       const bal = await WalletService.getBalance(did);
       setWallet({ ...bal, did, address });
       setLastUpdated(new Date().toLocaleTimeString());
+      setIsOfflineData(bal.isCached === true);
     } catch {
-      setWallet(prev => prev ? { ...prev, usdt: undefined as any, address } : null);
+      setIsOfflineData(true);
+      if (typeof localStorage !== 'undefined') {
+        const cached = localStorage.getItem(`kickpay_balance_${did}`);
+        if (cached) {
+          try {
+            setWallet({ ...JSON.parse(cached), did, address });
+          } catch {}
+        }
+      }
     }
   };
 
@@ -159,7 +178,13 @@ export default function DashboardView() {
   const handleRetryBalance = async () => {
     if (wallet && wallet.did) {
       setIsRefreshing(true);
-      await fetchBalance(wallet.did, wallet.address);
+      if (typeof navigator !== 'undefined' && !navigator.onLine) {
+        setIsOfflineData(true);
+        setIsRefreshing(false);
+        alert("Cannot refresh: Device is offline.");
+        return;
+      }
+      await fetchBalance(wallet.did, wallet.address, true);
       setTimeout(() => setIsRefreshing(false), 500); // Visual feedback
     }
   };
@@ -303,23 +328,36 @@ export default function DashboardView() {
         {isConnected && (
           <div className="flex flex-col md:flex-row items-start md:items-center gap-6 md:gap-12 bg-slate-900/50 p-4 rounded-xl border border-slate-800">
             <div>
-              <p className="text-xs font-mono text-slate-400 uppercase tracking-wider mb-1">Balance</p>
-              <div className="flex items-center gap-3">
-                <span className="text-3xl font-bold font-mono">
-                  {wallet && wallet.usdt !== undefined ? (
-                    <>{wallet.usdt.toFixed(2)}<span className="text-lg text-slate-400 ml-1">USDT</span></>
-                  ) : (
-                    <span className="text-lg font-sans font-medium text-slate-400">Balance unavailable</span>
+              <div className="flex items-center justify-between gap-4 mb-2">
+                <p className="text-xs font-mono text-slate-400 uppercase tracking-wider">Liquid Testnet Wallet</p>
+                <div className="flex items-center gap-2">
+                  {isOfflineData && (
+                    <span className="px-1.5 py-0.5 bg-yellow-500/10 border border-yellow-500/20 text-yellow-500 rounded text-[9px] font-bold uppercase tracking-wider animate-pulse">Offline Data</span>
                   )}
-                </span>
-                <button onClick={handleRetryBalance} className="text-slate-500 hover:text-white transition-colors" disabled={isRefreshing}>
-                  <RefreshCw size={14} className={isRefreshing ? "animate-spin" : ""} />
-                </button>
+                  <button onClick={handleRetryBalance} className="text-slate-500 hover:text-white transition-colors" disabled={isRefreshing}>
+                    <RefreshCw size={12} className={isRefreshing ? "animate-spin" : ""} />
+                  </button>
+                </div>
               </div>
-              <p className="text-[10px] text-slate-500 mt-1">Last Sync: {lastUpdated}</p>
+              
+              <div className="space-y-2 min-w-[180px]">
+                <div className="flex justify-between items-center">
+                  <span className="text-xs text-slate-400">L-USDT</span>
+                  <span className="font-bold font-mono text-white text-sm">
+                    {wallet && wallet.usdt !== undefined ? `${wallet.usdt.toFixed(2)}` : '0.00'} <span className="text-[10px] text-slate-500 font-normal font-sans">USDT</span>
+                  </span>
+                </div>
+                <div className="flex justify-between items-center">
+                  <span className="text-xs text-slate-400">L-BTC</span>
+                  <span className="font-bold font-mono text-white text-sm">
+                    {wallet && wallet.lbtc !== undefined ? `${wallet.lbtc.toFixed(8)}` : '0.00000000'} <span className="text-[10px] text-slate-500 font-normal font-sans">L-BTC</span>
+                  </span>
+                </div>
+              </div>
+              <p className="text-[9px] text-slate-500 mt-2">Last Sync: {lastUpdated}</p>
             </div>
             
-            <div className="hidden md:block w-px h-12 bg-slate-800"></div>
+            <div className="hidden md:block w-px h-16 bg-slate-800"></div>
 
             <div>
               <p className="text-xs font-mono text-slate-400 uppercase tracking-wider mb-1">Offline Identity (DID)</p>
@@ -437,6 +475,50 @@ export default function DashboardView() {
             <p className="text-sm font-medium text-slate-600">No merchants registered</p>
           </div>
         </motion.div>
+
+        {/* OTHER LIQUID ASSETS */}
+        {wallet?.address && (
+          <motion.div 
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.52 }}
+            className="bg-white rounded-[12px] border border-slate-200 shadow-sm p-5 flex flex-col justify-between"
+          >
+            <div className="flex items-center gap-2 mb-4 text-slate-900">
+              <Database size={18} className="text-slate-400" />
+              <h3 className="font-semibold text-sm">Other Liquid Assets</h3>
+            </div>
+            
+            <div className="flex-1 overflow-y-auto max-h-[140px] space-y-2 pr-1 scrollbar-none">
+              {(!wallet?.assets || wallet.assets.filter((a: any) => a.assetId !== L_USDT_ASSET_ID && a.assetId !== L_BTC_ASSET_ID).length === 0) ? (
+                <div className="flex flex-col items-center justify-center py-6 text-slate-400 text-center">
+                  <Database size={24} className="opacity-20 mb-2" />
+                  <p className="text-xs font-medium text-slate-600">No other assets detected</p>
+                  <p className="text-[10px] mt-0.5">Fund via faucet to receive custom tokens</p>
+                </div>
+              ) : (
+                wallet.assets
+                  .filter((a: any) => a.assetId !== L_USDT_ASSET_ID && a.assetId !== L_BTC_ASSET_ID)
+                  .map((asset: any, idx: number) => (
+                    <div key={idx} className="bg-slate-50 border border-slate-100 rounded-lg p-2.5 flex justify-between items-center shadow-sm">
+                      <div className="min-w-0 flex-1">
+                        <div className="flex items-center gap-1.5">
+                          <span className="font-bold text-xs text-slate-900 truncate max-w-[80px]" title={asset.name}>{asset.name}</span>
+                          <span className="px-1.5 py-0.5 bg-blue-50 text-blue-600 rounded text-[9px] font-bold uppercase tracking-wider">{asset.ticker}</span>
+                        </div>
+                        <p className="text-[9px] font-mono text-slate-400 mt-0.5 truncate select-all" title={asset.assetId}>{asset.assetId.slice(0, 8)}...{asset.assetId.slice(-6)}</p>
+                      </div>
+                      <div className="text-right ml-2">
+                        <span className="font-mono font-bold text-xs text-slate-900">
+                          {asset.amount.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: asset.precision })}
+                        </span>
+                      </div>
+                    </div>
+                  ))
+              )}
+            </div>
+          </motion.div>
+        )}
 
         {/* RECEIVE BLOCKCHAIN FUNDS */}
         {wallet?.address && (

@@ -1,5 +1,5 @@
 import { WalletType } from '@/lib/shared-types';
-import { generateKickPayWalletKeyPair, recoverKickPayWalletKeyPair, createKickPayWDKInstance, signMessage, verifyMessage, WalletKeyPair } from '@/lib/wallet-adapter';
+import { generateKickPayWalletKeyPair, recoverKickPayWalletKeyPair, createKickPayWDKInstance, signMessage, verifyMessage, WalletKeyPair, LiquidAsset } from '@/lib/wallet-adapter';
 
 /**
  * WalletService handles business logic related to generating and configuring wallets.
@@ -64,7 +64,7 @@ export class WalletService {
    * This defines the interface for creating an offline transaction
    * that will later integrate with the WDK ledger synchronization.
    */
-  static async getBalance(did: string): Promise<{ usdt: number | undefined, points: number | undefined }> {
+  static async getBalance(did: string): Promise<{ usdt: number | undefined; lbtc: number | undefined; assets: LiquidAsset[]; isCached?: boolean }> {
     try {
       if (typeof navigator !== 'undefined' && !navigator.onLine) {
         throw new Error('Offline');
@@ -72,11 +72,15 @@ export class WalletService {
       
       const publicKeyHex = this.resolvePublicKeyFromDid(did);
       
-      // Use dynamic import to avoid circular dep if any, or just import it directly
       const { getLiquidBalances } = await import('@/lib/wallet-adapter');
       const balances = await getLiquidBalances(publicKeyHex);
       
-      const result = { usdt: balances.usdt, points: 0 }; // L-BTC could be tracked too
+      const result = {
+        usdt: balances.usdt,
+        lbtc: balances.lbtc,
+        assets: balances.assets,
+        isCached: false
+      };
       
       if (typeof localStorage !== 'undefined') {
         localStorage.setItem(`kickpay_balance_${did}`, JSON.stringify(result));
@@ -85,9 +89,13 @@ export class WalletService {
     } catch (err) {
       if (typeof localStorage !== 'undefined') {
         const cached = localStorage.getItem(`kickpay_balance_${did}`);
-        if (cached) return JSON.parse(cached);
+        if (cached) {
+          try {
+            return { ...JSON.parse(cached), isCached: true };
+          } catch {}
+        }
       }
-      return { usdt: undefined, points: undefined };
+      return { usdt: undefined, lbtc: undefined, assets: [], isCached: true };
     }
   }
   static async signPayload(privateKeyHex: string, payload: any): Promise<string> {

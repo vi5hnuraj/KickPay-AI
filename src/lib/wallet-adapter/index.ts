@@ -204,34 +204,100 @@ export async function deriveLiquidTestnetAddress(publicKeyHex: string): Promise<
   }
 }
 
+export interface LiquidAsset {
+  assetId: string;
+  name: string;
+  ticker: string;
+  amount: number;
+  precision: number;
+}
+
+export interface LiquidBalancesResult {
+  usdt: number;
+  lbtc: number;
+  assets: LiquidAsset[];
+}
+
 const LIQUID_TESTNET_API = 'https://blockstream.info/liquidtestnet/api';
 const L_USDT_ASSET_ID = 'b612eb46313a2cd6ebabd8b7a8eed5696e29898b87a43bff41c94f51acef9d73';
 const L_BTC_ASSET_ID = '144c654307df7506185572a1796d80d7c9c3d4d71415aba7b8098b64e54fe207';
 
-async function fetchLiquidBalances(address: string): Promise<{ usdt: number; lbtc: number }> {
-  try {
-    const res = await fetch(`${LIQUID_TESTNET_API}/address/${address}/utxo`);
-    if (!res.ok) {
-      throw new Error(`Esplora API returned ${res.status}`);
-    }
-    const utxos: Array<{ value: number; asset: string }> = await res.json();
-    let usdtSat = 0;
-    let lbtcSat = 0;
-    for (const utxo of utxos) {
-      if (utxo.asset === L_USDT_ASSET_ID) {
-        usdtSat += utxo.value;
-      } else if (utxo.asset === L_BTC_ASSET_ID) {
-        lbtcSat += utxo.value;
+async function fetchLiquidBalances(address: string): Promise<LiquidBalancesResult> {
+  const res = await fetch(`${LIQUID_TESTNET_API}/address/${address}/utxo`);
+  if (!res.ok) {
+    throw new Error(`Esplora API returned ${res.status}`);
+  }
+  const utxos: Array<{ value: number; asset: string }> = await res.json();
+  
+  // Group UTXOs by asset ID and sum values (in satoshis)
+  const assetSats: Record<string, number> = {};
+  for (const utxo of utxos) {
+    assetSats[utxo.asset] = (assetSats[utxo.asset] || 0) + utxo.value;
+  }
+  
+  const assets: LiquidAsset[] = [];
+  let usdtAmount = 0;
+  let lbtcAmount = 0;
+
+  for (const [assetId, sats] of Object.entries(assetSats)) {
+    let name = "";
+    let ticker = "";
+    let precision = 8;
+
+    if (assetId === L_BTC_ASSET_ID) {
+      name = "Liquid Bitcoin";
+      ticker = "L-BTC";
+      precision = 8;
+    } else if (assetId === L_USDT_ASSET_ID) {
+      name = "Tether USD";
+      ticker = "L-USDT";
+      precision = 8;
+    } else {
+      // Query Blockstream Liquid asset endpoint for metadata
+      try {
+        const assetRes = await fetch(`${LIQUID_TESTNET_API}/asset/${assetId}`);
+        if (assetRes.ok) {
+          const assetInfo = await assetRes.json();
+          ticker = assetInfo.ticker || (assetInfo.contract && assetInfo.contract.ticker) || assetId.substring(0, 6);
+          name = assetInfo.name || (assetInfo.contract && assetInfo.contract.name) || "Unknown Liquid Asset";
+          precision = typeof assetInfo.precision === 'number' ? assetInfo.precision : (assetInfo.contract && typeof assetInfo.contract.precision === 'number' ? assetInfo.contract.precision : 8);
+        } else {
+          name = "Unknown Liquid Asset";
+          ticker = assetId.substring(0, 6);
+          precision = 8;
+        }
+      } catch {
+        name = "Unknown Liquid Asset";
+        ticker = assetId.substring(0, 6);
+        precision = 8;
       }
     }
-    return { usdt: usdtSat / 1e8, lbtc: lbtcSat / 1e8 };
-  } catch (err) {
-    console.warn(`[LiquidWallet] Failed to fetch balances for ${address}:`, err);
-    return { usdt: 0, lbtc: 0 };
+
+    const amount = sats / Math.pow(10, precision);
+    
+    if (assetId === L_USDT_ASSET_ID) {
+      usdtAmount = amount;
+    } else if (assetId === L_BTC_ASSET_ID) {
+      lbtcAmount = amount;
+    }
+
+    assets.push({
+      assetId,
+      name,
+      ticker,
+      amount,
+      precision
+    });
   }
+
+  return {
+    usdt: usdtAmount,
+    lbtc: lbtcAmount,
+    assets
+  };
 }
 
-export async function getLiquidBalances(publicKeyHex: string): Promise<{ usdt: number; lbtc: number }> {
+export async function getLiquidBalances(publicKeyHex: string): Promise<LiquidBalancesResult> {
   const address = await deriveLiquidTestnetAddress(publicKeyHex);
   return fetchLiquidBalances(address);
 }
