@@ -20,7 +20,7 @@ import {
 import { aiEngineUsed } from '../ai/qvac-service';
 
 const L_USDT_ASSET_ID = 'b612eb46313a2cd6ebabd8b7a8eed5696e29898b87a43bff41c94f51acef9d73';
-const L_BTC_ASSET_ID = '144c654307df7506185572a1796d80d7c9c3d4d71415aba7b8098b64e54fe207';
+const L_BTC_ASSET_ID = '144c654344aa716d6f3abcc1ca90e5641e4e2a7f633bc09fe3baf64585819a49';
 
 export default function DashboardView() {
   const [wallet, setWallet] = useState<{ usdt?: number; lbtc?: number; assets?: any[]; did: string; address?: string } | null>(null);
@@ -340,24 +340,32 @@ export default function DashboardView() {
                 </div>
               </div>
               
-              <div className="space-y-2 min-w-[180px]">
-                <div className="flex justify-between items-center">
-                  <span className="text-xs text-slate-400">L-USDT</span>
-                  <span className="font-bold font-mono text-white text-sm">
-                    {wallet && wallet.usdt !== undefined ? `${wallet.usdt.toFixed(2)}` : '0.00'} <span className="text-[10px] text-slate-500 font-normal font-sans">USDT</span>
-                  </span>
+              <div className="space-y-3 min-w-[200px] mt-2">
+                <div>
+                  <p className="text-[11px] font-semibold text-slate-400 tracking-wide">L-USDT</p>
+                  <p className="text-2xl font-bold font-mono text-white">
+                    {wallet && wallet.usdt !== undefined ? (
+                      <>{wallet.usdt.toFixed(2)} <span className="text-sm text-slate-400 font-normal font-sans">USDT</span></>
+                    ) : (
+                      <span className="text-sm font-sans text-slate-500 animate-pulse">Loading...</span>
+                    )}
+                  </p>
                 </div>
-                <div className="flex justify-between items-center">
-                  <span className="text-xs text-slate-400">L-BTC</span>
-                  <span className="font-bold font-mono text-white text-sm">
-                    {wallet && wallet.lbtc !== undefined ? `${wallet.lbtc.toFixed(8)}` : '0.00000000'} <span className="text-[10px] text-slate-500 font-normal font-sans">L-BTC</span>
-                  </span>
+                <div>
+                  <p className="text-[11px] font-semibold text-slate-400 tracking-wide">L-BTC</p>
+                  <p className="text-lg font-bold font-mono text-white">
+                    {wallet && wallet.lbtc !== undefined ? (
+                      <>{wallet.lbtc.toFixed(8)} <span className="text-xs text-slate-400 font-normal font-sans">L-BTC</span></>
+                    ) : (
+                      <span className="text-xs font-sans text-slate-500 animate-pulse">Loading...</span>
+                    )}
+                  </p>
                 </div>
               </div>
               <p className="text-[9px] text-slate-500 mt-2">Last Sync: {lastUpdated}</p>
             </div>
             
-            <div className="hidden md:block w-px h-16 bg-slate-800"></div>
+            <div className="hidden md:block w-px h-24 bg-slate-800"></div>
 
             <div>
               <p className="text-xs font-mono text-slate-400 uppercase tracking-wider mb-1">Offline Identity (DID)</p>
@@ -500,18 +508,21 @@ export default function DashboardView() {
                 wallet.assets
                   .filter((a: any) => a.assetId !== L_USDT_ASSET_ID && a.assetId !== L_BTC_ASSET_ID)
                   .map((asset: any, idx: number) => (
-                    <div key={idx} className="bg-slate-50 border border-slate-100 rounded-lg p-2.5 flex justify-between items-center shadow-sm">
+                    <div key={idx} className="bg-slate-50 border border-slate-100 rounded-lg p-3 flex justify-between items-center shadow-sm">
                       <div className="min-w-0 flex-1">
-                        <div className="flex items-center gap-1.5">
-                          <span className="font-bold text-xs text-slate-900 truncate max-w-[80px]" title={asset.name}>{asset.name}</span>
-                          <span className="px-1.5 py-0.5 bg-blue-50 text-blue-600 rounded text-[9px] font-bold uppercase tracking-wider">{asset.ticker}</span>
+                        <div className="flex flex-col">
+                          <span className="font-bold text-sm text-slate-900 uppercase tracking-wide">{asset.ticker}</span>
+                          <span className="text-[11px] font-medium text-slate-500 truncate" title={asset.name}>{asset.name}</span>
                         </div>
-                        <p className="text-[9px] font-mono text-slate-400 mt-0.5 truncate select-all" title={asset.assetId}>{asset.assetId.slice(0, 8)}...{asset.assetId.slice(-6)}</p>
+                        <p className="text-[9px] font-mono text-slate-400 mt-1 truncate select-all" title={asset.assetId}>
+                          ID: {asset.assetId.slice(0, 8)}...{asset.assetId.slice(-6)}
+                        </p>
                       </div>
-                      <div className="text-right ml-2">
+                      <div className="text-right ml-3 min-w-[80px]">
                         <span className="font-mono font-bold text-xs text-slate-900">
                           {asset.amount.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: asset.precision })}
                         </span>
+                        <span className="text-[10px] text-slate-500 font-bold ml-1 uppercase">{asset.ticker}</span>
                       </div>
                     </div>
                   ))

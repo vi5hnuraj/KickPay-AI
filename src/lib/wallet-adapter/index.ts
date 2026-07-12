@@ -220,7 +220,7 @@ export interface LiquidBalancesResult {
 
 const LIQUID_TESTNET_API = 'https://blockstream.info/liquidtestnet/api';
 const L_USDT_ASSET_ID = 'b612eb46313a2cd6ebabd8b7a8eed5696e29898b87a43bff41c94f51acef9d73';
-const L_BTC_ASSET_ID = '144c654307df7506185572a1796d80d7c9c3d4d71415aba7b8098b64e54fe207';
+const L_BTC_ASSET_ID = '144c654344aa716d6f3abcc1ca90e5641e4e2a7f633bc09fe3baf64585819a49';
 
 async function fetchLiquidBalances(address: string): Promise<LiquidBalancesResult> {
   const res = await fetch(`${LIQUID_TESTNET_API}/address/${address}/utxo`);

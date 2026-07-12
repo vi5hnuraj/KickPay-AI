@@ -19,7 +19,7 @@ export class WalletService {
     return await recoverKickPayWalletKeyPair(type, seedPhrase);
   }
 
-  static async importWallet(type: WalletType, seedPhrase: string): Promise<any> {
+  static async importWallet(type: WalletType, seedPhrase: string): Promise<unknown> {
     const dbCallbacks = {
       getBalance: async () => 0,
       getTokenBalance: async () => 0,
@@ -28,7 +28,7 @@ export class WalletService {
     return await createKickPayWDKInstance(type, seedPhrase, dbCallbacks);
   }
 
-  static async loadWallet(type: WalletType, seedPhrase: string): Promise<any> {
+  static async loadWallet(type: WalletType, seedPhrase: string): Promise<unknown> {
     return await this.importWallet(type, seedPhrase);
   }
 
@@ -87,6 +87,7 @@ export class WalletService {
       }
       return result;
     } catch (err) {
+      console.warn('[WalletService] getBalance failed:', err);
       if (typeof localStorage !== 'undefined') {
         const cached = localStorage.getItem(`kickpay_balance_${did}`);
         if (cached) {
@@ -98,12 +99,12 @@ export class WalletService {
       return { usdt: undefined, lbtc: undefined, assets: [], isCached: true };
     }
   }
-  static async signPayload(privateKeyHex: string, payload: any): Promise<string> {
+  static async signPayload(privateKeyHex: string, payload: unknown): Promise<string> {
     const message = typeof payload === 'string' ? payload : JSON.stringify(payload);
     return await signMessage(privateKeyHex, message);
   }
 
-  static async verifySignature(publicKeyHex: string, payload: any, signature: string): Promise<boolean> {
+  static async verifySignature(publicKeyHex: string, payload: unknown, signature: string): Promise<boolean> {
     const message = typeof payload === 'string' ? payload : JSON.stringify(payload);
     return await verifyMessage(publicKeyHex, message, signature);
   }
