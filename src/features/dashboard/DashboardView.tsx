@@ -1,6 +1,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import React, { useState, useEffect, useRef } from 'react';
 import { WalletService, OfflineSyncService } from '@/lib/kickpay-core';
+import { QRCodeSVG } from 'qrcode.react';
 import { motion } from 'framer-motion';
 import { 
   Activity,
@@ -451,9 +452,14 @@ export default function DashboardView() {
             </div>
             
             <div className="flex flex-col items-center mb-4">
-              {/* Dummy QR code generation representation */}
-              <div className="w-32 h-32 bg-white border border-slate-200 rounded-lg p-2 flex items-center justify-center mb-4">
-                <QrCode size={96} className="text-slate-800" />
+              {/* Real QR code encoding the Liquid Testnet address */}
+              <div className="w-36 h-36 bg-white border border-slate-200 rounded-lg p-2 flex items-center justify-center mb-4">
+                <QRCodeSVG
+                  value={wallet.address}
+                  size={120}
+                  level="H"
+                  includeMargin={false}
+                />
               </div>
               <p className="text-xs text-slate-500 mb-1">Liquid Testnet Address</p>
               <div className="flex items-center gap-2 bg-slate-50 border border-slate-200 rounded-lg p-2 w-full">
@@ -469,6 +475,7 @@ export default function DashboardView() {
             </div>
           </motion.div>
         )}
+
 
         {/* RECENT ACTIVITY */}
         <motion.div 

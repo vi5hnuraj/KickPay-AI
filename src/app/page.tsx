@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import WalletSetup from '../features/wallet/WalletSetup';
 import DashboardView from '../features/dashboard/DashboardView';
 import MerchantPOSView from '../features/merchant/MerchantPOSView';
@@ -9,6 +9,7 @@ import PaymentsView from '../features/payments/PaymentsView';
 import SettlementView from '../features/settlement/SettlementView';
 import SettingsView from '../features/settings/SettingsView';
 import AIAssistantView from '../features/ai/AIAssistantView';
+import { OfflineSyncService } from '../lib/kickpay-core';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
   LayoutDashboard,
@@ -44,6 +45,14 @@ export default function Home() {
   const [mounted, setMounted] = useState(false);
   const [activeTab, setActiveTab] = useState<DashboardTab>('dashboard');
 
+  const syncInitialized = useRef(false);
+
+  const initSync = (did: string) => {
+    if (syncInitialized.current) return;
+    syncInitialized.current = true;
+    OfflineSyncService.initialize(did, 'kickpay-main');
+  };
+
   useEffect(() => {
     let isMounted = true;
     setTimeout(() => {
@@ -51,8 +60,10 @@ export default function Home() {
     }, 50);
     const data = localStorage.getItem('kickpay_fan_wallet');
     if (data && isMounted) {
+      const parsed = JSON.parse(data);
       setTimeout(() => {
-        setWallet(JSON.parse(data));
+        setWallet(parsed);
+        initSync(parsed.did);
       }, 50);
     }
     return () => { isMounted = false; };
@@ -221,7 +232,7 @@ export default function Home() {
             
             <div className="glass-dark p-8 rounded-[32px] border border-border-dark/50 shadow-2xl relative overflow-hidden">
               <div className="absolute top-0 right-0 w-64 h-64 bg-primary-green/5 blur-[100px] rounded-full pointer-events-none" />
-              <WalletSetup onWalletLoaded={(w) => setWallet(w)} />
+              <WalletSetup onWalletLoaded={(w) => { setWallet(w); initSync(w.did); }} />
             </div>
           </div>
         </section>
@@ -322,7 +333,7 @@ export default function Home() {
               className="w-full h-full"
             >
               {activeTab === 'dashboard' && <DashboardView />}
-              {activeTab === 'wallet' && <WalletSetup onWalletLoaded={(w) => setWallet(w)} />}
+              {activeTab === 'wallet' && <WalletSetup onWalletLoaded={(w) => { setWallet(w); initSync(w.did); }} />}
               {activeTab === 'merchant' && <MerchantPOSView />}
               {activeTab === 'tickets' && <TicketsView />}
               {activeTab === 'payments' && <PaymentsView />}

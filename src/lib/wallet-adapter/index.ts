@@ -143,34 +143,36 @@ export async function recoverKickPayWalletKeyPair(type: WalletType, seedPhrase: 
 }
 
 export async function signMessage(privateKeyHex: string, messageText: string): Promise<string> {
+  // Hash the message to a 32-byte digest (secp256k1 sign requires exactly 32 bytes)
+  const encoder = new TextEncoder();
+  const msgBytes = encoder.encode(messageText);
+  const hashBuffer = await globalThis.crypto.subtle.digest('SHA-256', msgBytes);
+  const hash32 = new Uint8Array(hashBuffer);
+
+  // Decode the private key bytes
+  const privKeyBytes = hexToUint8Array(privateKeyHex);
+
+  // Sign using the same tiny-secp256k1 instance used for key derivation
+  // Returns a 64-byte compact signature [r || s]
+  const sigBytes = ecc.sign(hash32, privKeyBytes);
+  return bufToHex(sigBytes.buffer as ArrayBuffer);
+}
+
+export async function verifyMessage(publicKeyHex: string, messageText: string, signatureHex: string): Promise<boolean> {
   try {
-    const rawPrivateKey = hexToBuf(privateKeyHex);
-    const key = await globalThis.crypto.subtle.importKey(
-      'pkcs8',
-      rawPrivateKey,
-      {
-        name: 'ECDSA',
-        namedCurve: 'P-256',
-      },
-      true,
-      ['sign']
-    );
-
+    // Hash the message identically to signMessage
     const encoder = new TextEncoder();
-    const data = encoder.encode(messageText);
-    const signature = await globalThis.crypto.subtle.sign(
-      {
-        name: 'ECDSA',
-        hash: { name: 'SHA-256' },
-      },
-      key,
-      data
-    );
+    const msgBytes = encoder.encode(messageText);
+    const hashBuffer = await globalThis.crypto.subtle.digest('SHA-256', msgBytes);
+    const hash32 = new Uint8Array(hashBuffer);
 
-    return bufToHex(signature);
-  } catch (err) {
-    // Return signature based on payload hash
-    return `sig_${bufToHex(new TextEncoder().encode(messageText).buffer).slice(0, 16)}`;
+    const pubKeyBytes = hexToUint8Array(publicKeyHex);
+    const sigBytes = hexToUint8Array(signatureHex);
+
+    // Verify using tiny-secp256k1 — returns true only for valid (r,s) over the same hash
+    return ecc.verify(hash32, pubKeyBytes, sigBytes);
+  } catch {
+    return false;
   }
 }
 

@@ -23,16 +23,38 @@ export default function PaymentsView() {
   const [history, setHistory] = useState<Transaction[]>([]);
   const [search, setSearch] = useState('');
 
-
+  const TX_STORAGE_KEY = 'kickpay_tx_history';
+  const MAX_STORED = 200;
 
   useEffect(() => {
-    // Initialize local state from the offline ledger memory cache.
+    // Load persisted history on mount so transactions survive page refreshes
+    try {
+      const stored = localStorage.getItem(TX_STORAGE_KEY);
+      if (stored) {
+        setHistory(JSON.parse(stored));
+      }
+    } catch {
+      // Corrupt storage — start fresh
+      localStorage.removeItem(TX_STORAGE_KEY);
+    }
+
+    // Subscribe to new transactions arriving via the mesh/WebSocket
     OfflineSyncService.receiveReplicatedTransactions((data: any) => {
       if (data.type === 'transaction') {
-        setHistory(prev => [data.data as Transaction, ...prev]);
+        const incoming = data.data as Transaction;
+        setHistory(prev => {
+          // Deduplicate by transaction id
+          if (prev.some(tx => tx.id === incoming.id)) return prev;
+          const updated = [incoming, ...prev].slice(0, MAX_STORED);
+          try {
+            localStorage.setItem(TX_STORAGE_KEY, JSON.stringify(updated));
+          } catch { /* storage full — skip persistence */ }
+          return updated;
+        });
       }
     });
   }, []);
+
 
   const filteredTx = history.filter(tx => 
     tx.id.toLowerCase().includes(search.toLowerCase()) || 

@@ -1,5 +1,5 @@
 import { WalletType } from '@/lib/shared-types';
-import { generateKickPayWalletKeyPair, recoverKickPayWalletKeyPair, createKickPayWDKInstance, signMessage, WalletKeyPair } from '@/lib/wallet-adapter';
+import { generateKickPayWalletKeyPair, recoverKickPayWalletKeyPair, createKickPayWDKInstance, signMessage, verifyMessage, WalletKeyPair } from '@/lib/wallet-adapter';
 
 /**
  * WalletService handles business logic related to generating and configuring wallets.
@@ -96,9 +96,8 @@ export class WalletService {
   }
 
   static async verifySignature(publicKeyHex: string, payload: any, signature: string): Promise<boolean> {
-    // In a full implementation, we would use crypto.subtle.verify here.
-    // For now, we simulate successful verification.
-    return true; 
+    const message = typeof payload === 'string' ? payload : JSON.stringify(payload);
+    return await verifyMessage(publicKeyHex, message, signature);
   }
 
   /**
