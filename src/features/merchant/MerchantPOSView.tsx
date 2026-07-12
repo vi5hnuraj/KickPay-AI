@@ -116,13 +116,17 @@ export default function MerchantPOSView() {
         }
       } else if (data.type === 'payment_handshake' && data.data.merchantDid === merchantWallet.did) {
         const handshake = data.data as any; // Type is PaymentSessionHandshake
+        console.log('[Merchant] Handshake received', handshake);
         const activeReq = currentRequestRef.current;
         if (activeReq && activeReq.sessionId === handshake.sessionId) {
           // Change status to reflect handshake received
           setStatus('handshake_received' as any);
           
+          console.log('[Merchant] PaymentRequest created', activeReq);
+          
           // Add target DID
           const targetedReq = { ...activeReq, targetDid: handshake.customerDid };
+          console.log('[Merchant] PaymentRequest sent', targetedReq);
           OfflineSyncService.sendPaymentRequest(targetedReq).catch(console.error);
         }
       }

@@ -50,6 +50,16 @@ wss.on('connection', (ws: WebSocket, req) => {
           const currentSession = sessions.get(sessionId);
           let forwardedCount = 0;
 
+          // Detection for logs
+          if (payload && payload.type === 'sync_append' && payload.entry?.payload) {
+            const innerPayload = payload.entry.payload;
+            if (innerPayload.type === 'payment_handshake') {
+              console.log('[Relay] Handshake received');
+            } else if (innerPayload.type === 'payment_request') {
+              console.log('[Relay] PaymentRequest forwarded');
+            }
+          }
+
           if (targetDid === 'broadcast_topic_peers') {
             const topic = currentSession?.topic;
             console.log(`[Relay] Broad-signaling from ${sessionId} on topic: ${topic}`);

@@ -265,9 +265,14 @@ export class AutobaseManager {
     if (this.realAutobase) {
       await this.realAutobase.append(entry);
     } else {
-      this.unifiedLog.push(entry);
-      this.unifiedLog.sort((a, b) => a.timestamp - b.timestamp);
-      this.listeners.forEach(fn => fn(this.unifiedLog));
+      const core = this.cores.get(author);
+      if (core) {
+        await core.append(author, payload, signature);
+      } else {
+        this.unifiedLog.push(entry);
+        this.unifiedLog.sort((a, b) => a.timestamp - b.timestamp);
+        this.listeners.forEach(fn => fn(this.unifiedLog));
+      }
     }
   }
 

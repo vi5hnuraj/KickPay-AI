@@ -144,11 +144,13 @@ export default function DashboardView() {
       const dataWalletDid = localStorage.getItem('kickpay_fan_wallet') ? JSON.parse(localStorage.getItem('kickpay_fan_wallet')!).did : null;
       if (data.type === 'payment_request') {
         const pr = data.data;
+        console.log('[Customer] PaymentRequest received', pr);
         if (
           pr.targetDid === dataWalletDid && 
           pr.sessionId === activeSessionIdRef.current &&
           pr.expiresAt > Date.now()
         ) {
+          console.log('[Customer] Approval dialog opened', pr);
           // It's targeted specifically at us!
           setIncomingPaymentRequest(pr);
           setPaymentStatus('idle');
@@ -213,10 +215,18 @@ export default function DashboardView() {
       const sessionId = url.searchParams.get('session');
       if (!merchantDid || !sessionId) throw new Error('Invalid URI');
 
+      console.log('[Customer] QR parsed', { merchantDid, sessionId });
+
       activeSessionIdRef.current = sessionId;
       setHandshakeStatus('waiting');
       setIsScanning(false);
       setScanUri('');
+
+      console.log('[Customer] Sending handshake', {
+        merchantDid,
+        customerDid: wallet.did,
+        sessionId
+      });
 
       await OfflineSyncService.sendHandshake({
         merchantDid,
